@@ -1,11 +1,25 @@
 import { Smile, Frown, Meh, SmilePlus, Activity, ChevronRight, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '../../utils/cn';
 
 interface CheckInScreenProps {
   proteinTotal: number;
   waterTotal: number;
   completedWorkout: { day: string; duration: string } | null;
+  checkInData: {
+    mood: number | null;
+    energy: 'Low' | 'Medium' | 'High' | null;
+    sleep: string;
+    otherWorkout: string;
+    notes: string;
+  };
+  onUpdateCheckInData: (data: {
+    mood: number | null;
+    energy: 'Low' | 'Medium' | 'High' | null;
+    sleep: string;
+    otherWorkout: string;
+    notes: string;
+  }) => void;
   onCheckIn: () => void;
   onNavigate: (tab: string) => void;
 }
@@ -17,14 +31,36 @@ export const CheckInScreen = ({
   proteinTotal,
   waterTotal,
   completedWorkout: _completedWorkout,
+  checkInData,
+  onUpdateCheckInData,
   onCheckIn,
   onNavigate,
 }: CheckInScreenProps) => {
-  const [mood, setMood] = useState<MoodLevel | null>(null);
-  const [energy, setEnergy] = useState<EnergyLevel | null>(null);
-  const [sleep, setSleep] = useState('');
-  const [otherWorkout, setOtherWorkout] = useState('');
-  const [notes, setNotes] = useState('');
+  const [mood, setMood] = useState<MoodLevel | null>(checkInData.mood as MoodLevel | null);
+  const [energy, setEnergy] = useState<EnergyLevel | null>(checkInData.energy);
+  const [sleep, setSleep] = useState(checkInData.sleep);
+  const [otherWorkout, setOtherWorkout] = useState(checkInData.otherWorkout);
+  const [notes, setNotes] = useState(checkInData.notes);
+
+  // Restore state from props when switching back to this tab
+  useEffect(() => {
+    setMood(checkInData.mood as MoodLevel | null);
+    setEnergy(checkInData.energy);
+    setSleep(checkInData.sleep);
+    setOtherWorkout(checkInData.otherWorkout);
+    setNotes(checkInData.notes);
+  }, [checkInData]);
+
+  // Persist form data in real-time as user types/selects
+  useEffect(() => {
+    onUpdateCheckInData({
+      mood,
+      energy,
+      sleep,
+      otherWorkout,
+      notes,
+    });
+  }, [mood, energy, sleep, otherWorkout, notes, onUpdateCheckInData]);
 
   const moodIcons = [
     { value: 1, icon: Frown, label: 'Very Bad' },
@@ -38,12 +74,6 @@ export const CheckInScreen = ({
 
   const handleSubmit = () => {
     onCheckIn();
-    // Reset form
-    setMood(null);
-    setEnergy(null);
-    setSleep('');
-    setOtherWorkout('');
-    setNotes('');
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const getTodayKey = (): string => {
   const now = new Date();
@@ -22,6 +22,27 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   };
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
+
+  // Listen for changes in other tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === key && e.newValue !== null) {
+        try {
+          setStoredValue(JSON.parse(e.newValue));
+        } catch (error) {
+          console.warn(`Error parsing storage event for key "${key}":`, error);
+        }
+      }
+    };
+
+    // Add event listener for storage changes
+    window.addEventListener('storage', handleStorageChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [key]);
 
   // Return a wrapped version of useState's setter function that persists to localStorage
   const setValue = (value: T | ((val: T) => T)) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Toaster, toast } from 'sonner';
 import { BottomNav } from './components/BottomNav';
 import { CheckInScreen } from './components/screens/CheckInScreen';
@@ -14,6 +14,11 @@ interface DailyData {
   waterTotal: number;
   completedWorkout: { day: string; duration: string } | null;
   checkedIn: boolean;
+  mood: number | null;
+  energy: 'Low' | 'Medium' | 'High' | null;
+  sleep: string;
+  otherWorkout: string;
+  notes: string;
 }
 
 const getEmptyDailyData = (): DailyData => ({
@@ -22,6 +27,11 @@ const getEmptyDailyData = (): DailyData => ({
   waterTotal: 0,
   completedWorkout: null,
   checkedIn: false,
+  mood: null,
+  energy: null,
+  sleep: '',
+  otherWorkout: '',
+  notes: '',
 });
 
 function App() {
@@ -65,10 +75,27 @@ function App() {
     toast.success(`Added ${amount}oz water`);
   };
 
-  const handleCheckIn = () => {
+  const handleUpdateCheckInData = useCallback((checkInData: {
+    mood: number | null;
+    energy: 'Low' | 'Medium' | 'High' | null;
+    sleep: string;
+    otherWorkout: string;
+    notes: string;
+  }) => {
+    setDailyData((prev) => ({
+      ...prev,
+      mood: checkInData.mood,
+      energy: checkInData.energy,
+      sleep: checkInData.sleep,
+      otherWorkout: checkInData.otherWorkout,
+      notes: checkInData.notes,
+    }));
+  }, [setDailyData]);
+
+  const handleCheckIn = useCallback(() => {
     setDailyData((prev) => ({ ...prev, checkedIn: true }));
     toast.success('Check-in complete!');
-  };
+  }, [setDailyData]);
 
   const handleWorkoutComplete = (day: string, duration: string) => {
     setDailyData((prev) => ({ ...prev, completedWorkout: { day, duration } }));
@@ -83,6 +110,14 @@ function App() {
             proteinTotal={dailyData.proteinTotal}
             waterTotal={dailyData.waterTotal}
             completedWorkout={dailyData.completedWorkout}
+            checkInData={{
+              mood: dailyData.mood,
+              energy: dailyData.energy,
+              sleep: dailyData.sleep,
+              otherWorkout: dailyData.otherWorkout,
+              notes: dailyData.notes,
+            }}
+            onUpdateCheckInData={handleUpdateCheckInData}
             onCheckIn={handleCheckIn}
             onNavigate={setActiveTab}
           />
