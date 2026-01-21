@@ -1,4 +1,4 @@
-# Fitness Tracker
+# Health Tracker
 
 A mobile-first fitness and health tracking app built with React, TypeScript, and Tailwind CSS.
 
